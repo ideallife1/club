@@ -6,276 +6,210 @@
 <title>无人飞行器协会违规管理系统</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-.status-normal{color:#28a745;font-weight:bold}
+.status-normal{color:#198754;font-weight:bold}
 .status-warning{color:#ffc107;font-weight:bold}
 .status-dismiss{color:#dc3545;font-weight:bold}
-.card{margin-bottom:20px}
 </style>
 </head>
 <body>
-<div class="container mt-4 mb-5">
+<div class="container mt-4">
 <h1 class="text-center mb-4">📝 无人飞行器协会违规管理系统</h1>
 
 <div class="card mb-3">
 <div class="card-header">管理员登录</div>
 <div class="card-body">
-<input type="password" id="pwd" class="form-control w-50 d-inline" placeholder="密码">
+<input type="password" id="pwd" class="form-control w-50 d-inline" placeholder="输入密码">
 <button class="btn btn-primary ms-2" onclick="login()">登录</button>
 <button class="btn btn-outline-secondary ms-2" onclick="logout()">退出</button>
-<div id="status" class="mt-2 text-muted">未登录 · 仅可查看</div>
+<div id="tip" class="mt-2 text-muted">未登录 — 仅查看</div>
 </div>
 </div>
 
 <div class="card mb-3">
 <div class="card-body">
-<label>劝退阈值：</label>
-<input type="number" id="limit" value="3" min="1" class="form-control w-auto d-inline" disabled>
-<button class="btn btn-success ms-3" id="exportBtn" disabled onclick="exportData()">导出Excel</button>
+<button class="btn btn-sm btn-primary" id="addMember" disabled onclick="addMember()">添加社员</button>
+<button class="btn btn-sm btn-danger ms-2" id="addViolation" disabled onclick="addViolation()">新增违规</button>
+<button class="btn btn-sm btn-success ms-2" id="exportBtn" disabled onclick="exportData()">导出Excel</button>
 </div>
 </div>
 
-<ul class="nav nav-tabs mb-3">
-<li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#member">社员</a></li>
-<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#log">违规记录</a></li>
-<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#stat">统计</a></li>
-</ul>
-
-<div class="tab-content">
-<div class="tab-pane fade show active" id="member">
 <div class="card">
-<div class="card-header d-flex justify-content-between">
-<span>社员列表</span>
-<button id="addMemberBtn" disabled class="btn btn-sm btn-primary" onclick="addMember()">添加社员</button>
+<div class="table-responsive">
+<table class="table table-bordered" id="table">
+<thead>
+<tr>
+<th>姓名</th>
+<th>违规次数</th>
+<th>状态</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
 </div>
-<div class="card-body">
-<input class="form-control mb-2" id="search" placeholder="搜索姓名">
-<div class="table-responsive"><table class="table table-bordered" id="memberTable"></table></div>
+</div>
+
+<div class="card mt-3">
+<div class="card-header">违规记录</div>
+<div class="table-responsive">
+<table class="table table-sm" id="logsTable">
+<thead>
+<tr>
+<th>时间</th>
+<th>姓名</th>
+<th>原因</th>
+<th>登记人</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="logs"></tbody>
+</table>
 </div>
 </div>
 </div>
 
-<div class="tab-pane fade" id="log">
-<div class="card">
-<div class="card-header d-flex justify-content-between">
-<span>违规记录</span>
-<button id="addLogBtn" disabled class="btn btn-sm btn-primary" onclick="addLog()">新增违规</button>
-</div>
-<div class="card-body">
-<div class="table-responsive"><table class="table table-bordered" id="logTable"></table></div>
-</div>
-</div>
-</div>
-
-<div class="tab-pane fade" id="stat">
-<div class="card">
-<div class="card-body">
-<div class="row text-center">
-<div class="col-4"><h5 id="totalM">0</h5><p>总社员</p></div>
-<div class="col-4"><h5 id="totalL">0</h5><p>总违规</p></div>
-<div class="col-4"><h5 id="totalD">0</h5><p>待劝退</p></div>
-</div>
-<div class="mt-3"><h6>违规排行</h6><div id="rank"></div></div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- 弹窗 -->
 <div class="modal fade" id="mModal"><div class="modal-dialog"><div class="modal-content">
 <div class="modal-header"><h5>添加社员</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body"><input class="form-control" id="newName" placeholder="姓名"></div>
+<div class="modal-body"><input class="form-control" id="mName" placeholder="姓名"></div>
 <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveMember()">确定</button></div>
 </div></div></div>
 
-<div class="modal fade" id="lModal"><div class="modal-dialog"><div class="modal-content">
+<div class="modal fade" id="vModal"><div class="modal-dialog"><div class="modal-content">
 <div class="modal-header"><h5>新增违规</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
 <div class="modal-body">
-<select class="form-select mb-2" id="selName"></select>
-<textarea class="form-control mb-2" id="reason" placeholder="违规原因"></textarea>
-<input class="form-control" id="operator" placeholder="登记人">
+<select class="form-select mb-2" id="vName"></select>
+<input class="form-control mb-2" id="vReason" placeholder="违规原因">
+<input class="form-control" id="vUser" placeholder="登记人">
 </div>
-<div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveLog()">确定</button></div>
+<div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveViolation()">确定</button></div>
 </div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-// ========== 全局共享数据存储（所有人共用） ==========
-let DB = {
-members: [],
-logs: []
-};
-
+let data = { members: [], logs: [] };
 const PASSWORD = "987321";
-let isAdmin = false;
+let admin = false;
 
-// 远程 JSONBin 配置（你可以自己替换 ID 和 KEY）
-const BIN_ID = "67e43026acd7f4c757026604";
-const API_KEY = "$2b$10$QJz9oXaKvf3dUQH3Kyt3eOv";
-const HEADERS = {
-"Content-Type": "application/json",
-"X-Master-Key": API_KEY
-};
+const API = "https://api.jsonbin.io/v3/b/67f0a1c6acd125642295a83d";
+const KEY = "$2b$10$UqxG0tXvEaHjNtG5t0M5be";
 
-// 加载数据
-async function loadData() {
-try {
-let r = await fetch("https://api.jsonbin.io/v3/b/"+BIN_ID+"/latest", { headers: HEADERS });
-let d = await r.json();
-DB = d.record || { members: [], logs: [] };
-render();
-} catch(e) { alert("加载失败"); }
+async function load() {
+  try {
+    let res = await fetch(API, { headers: { "X-Master-Key": KEY } });
+    let json = await res.json();
+    data = json.record || { members: [], logs: [] };
+    render();
+  } catch(e) {}
 }
 
-// 保存数据
-async function saveData() {
-try {
-await fetch("https://api.jsonbin.io/v3/b/"+BIN_ID, {
-method: "PUT",
-headers: HEADERS,
-body: JSON.stringify(DB)
-});
-render();
-alert("已同步到共享数据");
-} catch(e) { alert("同步失败"); }
+async function save() {
+  await fetch(API, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
+    body: JSON.stringify(data)
+  });
+  render();
 }
 
-// 登录
 function login() {
-if(document.getElementById("pwd").value === PASSWORD) {
-isAdmin = true;
-document.getElementById("status").innerText = "已登录 · 管理员";
-document.getElementById("addMemberBtn").disabled = false;
-document.getElementById("addLogBtn").disabled = false;
-document.getElementById("exportBtn").disabled = false;
-document.getElementById("limit").disabled = false;
-render();
-} else alert("密码错误");
+  if (document.getElementById("pwd").value === PASSWORD) {
+    admin = true;
+    document.getElementById("tip").innerText = "已登录 — 管理员";
+    document.getElementById("addMember").disabled = false;
+    document.getElementById("addViolation").disabled = false;
+    document.getElementById("exportBtn").disabled = false;
+  } else alert("密码错误");
 }
 
 function logout() {
-isAdmin = false;
-document.getElementById("status").innerText = "未登录 · 仅可查看";
-document.getElementById("addMemberBtn").disabled = true;
-document.getElementById("addLogBtn").disabled = true;
-document.getElementById("exportBtn").disabled = true;
-document.getElementById("limit").disabled = true;
-render();
+  admin = false;
+  document.getElementById("tip").innerText = "未登录 — 仅查看";
+  document.getElementById("addMember").disabled = true;
+  document.getElementById("addViolation").disabled = true;
+  document.getElementById("exportBtn").disabled = true;
 }
 
-// 搜索
-document.getElementById("search").oninput = function() {
-let kw = this.value.toLowerCase();
-let rows = document.getElementById("memberTable").rows;
-for(let row of rows) row.style.display = row.innerText.toLowerCase().includes(kw) ? "" : "none";
-};
-
-// 成员操作
 function addMember() {
-document.getElementById("newName").value = "";
-new bootstrap.Modal(document.getElementById("mModal")).show();
+  document.getElementById("mName").value = "";
+  new bootstrap.Modal(document.getElementById("mModal")).show();
 }
 
 async function saveMember() {
-let name = document.getElementById("newName").value.trim();
-if(!name) return;
-if(DB.members.some(x => x.name === name)) { alert("已存在"); return; }
-DB.members.push({ name, count: 0 });
-await saveData();
-bootstrap.Modal.getInstance(document.getElementById("mModal")).hide();
+  let name = document.getElementById("mName").value.trim();
+  if (!name) return;
+  if (data.members.some(x => x.name === name)) { alert("已存在"); return; }
+  data.members.push({ name, count: 0 });
+  await save();
+  bootstrap.Modal.getInstance(document.getElementById("mModal")).hide();
+}
+
+function addViolation() {
+  let sel = document.getElementById("vName");
+  sel.innerHTML = "";
+  data.members.forEach(m => {
+    let o = document.createElement("option");
+    o.value = m.name;
+    o.innerText = m.name;
+    sel.appendChild(o);
+  });
+  new bootstrap.Modal(document.getElementById("vModal")).show();
+}
+
+async function saveViolation() {
+  let name = document.getElementById("vName").value;
+  let reason = document.getElementById("vReason").value.trim();
+  let user = document.getElementById("vUser").value.trim();
+  if (!reason || !user) return;
+  data.logs.push({ name, time: new Date().toLocaleString(), reason, user });
+  data.members.find(x => x.name === name).count++;
+  await save();
+  bootstrap.Modal.getInstance(document.getElementById("vModal")).hide();
 }
 
 async function delMember(name) {
-if(!confirm("确定删除？")) return;
-DB.members = DB.members.filter(x => x.name !== name);
-DB.logs = DB.logs.filter(x => x.name !== name);
-await saveData();
-}
-
-// 违规记录
-function addLog() {
-let sel = document.getElementById("selName");
-sel.innerHTML = "";
-DB.members.forEach(m => {
-let o = document.createElement("option");
-o.value = m.name;
-o.innerText = m.name;
-sel.appendChild(o);
-});
-new bootstrap.Modal(document.getElementById("lModal")).show();
-}
-
-async function saveLog() {
-let name = document.getElementById("selName").value;
-let reason = document.getElementById("reason").value.trim();
-let user = document.getElementById("operator").value.trim();
-if(!reason || !user) return;
-DB.logs.push({ name, time: new Date().toLocaleString(), reason, user });
-let m = DB.members.find(x => x.name === name);
-m.count++;
-await saveData();
-bootstrap.Modal.getInstance(document.getElementById("lModal")).hide();
+  if (!admin) return;
+  if (!confirm("删除？")) return;
+  data.members = data.members.filter(x => x.name !== name);
+  data.logs = data.logs.filter(x => x.name !== name);
+  await save();
 }
 
 async function delLog(i) {
-if(!confirm("删除该记录？")) return;
-let log = DB.logs[i];
-let m = DB.members.find(x => x.name === log.name);
-if(m) m.count = Math.max(0, m.count - 1);
-DB.logs.splice(i, 1);
-await saveData();
+  if (!admin) return;
+  let log = data.logs[i];
+  let m = data.members.find(x => x.name === log.name);
+  if(m) m.count = Math.max(0, m.count - 1);
+  data.logs.splice(i, 1);
+  await save();
 }
 
-// 渲染
 function render() {
-let limit = parseInt(document.getElementById("limit").value) || 3;
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+  data.members.forEach(m => {
+    let status = m.count >= 5 ? "dismiss" : m.count >= 4 ? "warning" : "normal";
+    let text = status === "dismiss" ? "待劝退" : status === "warning" ? "警告" : "正常";
+    let btn = admin ? `<button class="btn btn-sm btn-danger" onclick="delMember('${m.name}')">删除</button>` : "无权限";
+    list.innerHTML += `<tr><td>${m.name}</td><td>${m.count}</td><td><span class="status-${status}">${text}</span></td><td>${btn}</td></tr>`;
+  });
 
-// 成员表
-let mt = document.getElementById("memberTable");
-mt.innerHTML = `<thead><tr><th>姓名</th><th>违规次数</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody>`;
-let body = mt.querySelector("tbody");
-DB.members.forEach(m => {
-let st = m.count >= limit ? "dismiss" : m.count >= limit-1 ? "warning" : "normal";
-let txt = st === "dismiss" ? "待劝退" : st === "warning" ? "警告" : "正常";
-let btn = isAdmin ? `<button class="btn btn-sm btn-danger" onclick="delMember('${m.name}')">删除</button>` : "无权限";
-body.innerHTML += `<tr><td>${m.name}</td><td>${m.count}</td><td><span class="status-${st}">${txt}</span></td><td>${btn}</td></tr>`;
-});
-
-// 日志表
-let lt = document.getElementById("logTable");
-lt.innerHTML = `<thead><tr><th>时间</th><th>姓名</th><th>原因</th><th>登记人</th><th>操作</th></tr></thead><tbody></tbody>`;
-let lbody = lt.querySelector("tbody");
-DB.logs.forEach((log,i) => {
-let btn = isAdmin ? `<button class="btn btn-sm btn-danger" onclick="delLog(${i})">删除</button>` : "无权限";
-lbody.innerHTML += `<tr><td>${log.time}</td><td>${log.name}</td><td>${log.reason}</td><td>${log.user}</td><td>${btn}</td></tr>`;
-});
-
-// 统计
-document.getElementById("totalM").innerText = DB.members.length;
-document.getElementById("totalL").innerText = DB.logs.length;
-document.getElementById("totalD").innerText = DB.members.filter(x => x.count >= limit).length;
-
-// 排行
-let rank = document.getElementById("rank");
-rank.innerHTML = "";
-[...DB.members].sort((a,b)=>b.count-a.count).forEach((m,i) => {
-if(m.count > 0) rank.innerHTML += `<div class="p-1 border-bottom">${i+1}. ${m.name} ${m.count}次</div>`;
-});
+  let logs = document.getElementById("logs");
+  logs.innerHTML = "";
+  data.logs.forEach((log, i) => {
+    let btn = admin ? `<button class="btn btn-sm btn-danger" onclick="delLog(${i})">删</button>` : "";
+    logs.innerHTML += `<tr><td>${log.time}</td><td>${log.name}</td><td>${log.reason}</td><td>${log.user}</td><td>${btn}</td></tr>`;
+  });
 }
 
-// 导出
 function exportData() {
-let wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(DB.members), "社员");
-XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(DB.logs), "违规记录");
-XLSX.writeFile(wb, "社团共享违规记录.xlsx");
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.members), "社员");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.logs), "违规记录");
+  XLSX.writeFile(wb, "社团违规记录.xlsx");
 }
 
-// 阈值修改
-document.getElementById("limit").onchange = render;
-
-// 初始化
-loadData();
+load();
 </script>
 </body>
 </html>
