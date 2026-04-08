@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社团违规记录（永久不丢版）</title>
+<title>无人飞行器协会违规记录管理</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .status-normal{color:#198754;font-weight:bold}
@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="container mt-4 mb-5">
-<h1 class="text-center mb-4">📝 社团违规记录系统</h1>
+<h1 class="text-center mb-4">📝 无人飞行器协会违规记录管理</h1>
 
 <div class="card mb-3">
 <div class="card-header">管理员登录</div>
@@ -89,29 +89,26 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ==============================================
-// 【永久本地存储】刷新不掉、关闭浏览器还在！
+// ✅ 在这里直接写成员和违规记录！！！
 // ==============================================
-let data = { members: [], logs: [] };
+let data = {
+  members: [
+    { name: "张三", count: 2 },
+    { name: "李四", count: 5 },
+    { name: "王五", count: 4 }
+  ],
+  logs: [
+    { name: "张三", time: "2026-04-08 10:00", reason: "迟到", user: "社长" },
+    { name: "李四", time: "2026-04-08 11:00", reason: "缺席", user: "社长" },
+    { name: "王五", time: "2026-04-08 12:00", reason: "违规", user: "社长" }
+  ]
+};
+
 const PASSWORD = "987321";
 let admin = false;
 
-// 每次打开页面自动加载数据
-loadData();
+render(); // 一打开就显示你写的内容
 
-// 加载
-function loadData() {
-  let d = localStorage.getItem("club_data");
-  if (d) data = JSON.parse(d);
-  render();
-}
-
-// 保存（永久不丢）
-function saveData() {
-  localStorage.setItem("club_data", JSON.stringify(data));
-  render();
-}
-
-// 登录
 function login() {
   if (document.getElementById("pwd").value === PASSWORD) {
     admin = true;
@@ -130,7 +127,6 @@ function logout() {
   document.getElementById("exportBtn").disabled = true;
 }
 
-// 成员
 function addMember() {
   document.getElementById("mName").value = "";
   new bootstrap.Modal(document.getElementById("mModal")).show();
@@ -141,11 +137,10 @@ function saveMember() {
   if (!name) return;
   if (data.members.some(x => x.name === name)) { alert("已存在"); return; }
   data.members.push({ name, count: 0 });
-  saveData();
+  render();
   bootstrap.Modal.getInstance(document.getElementById("mModal")).hide();
 }
 
-// 违规
 function addViolation() {
   let sel = document.getElementById("vName");
   sel.innerHTML = "";
@@ -171,17 +166,16 @@ function saveViolation() {
   let m = data.members.find(x => x.name === name);
   if (m) m.count++;
 
-  saveData();
+  render();
   bootstrap.Modal.getInstance(document.getElementById("vModal")).hide();
 }
 
-// 删除
 function delMember(name) {
   if (!admin) return;
   if (!confirm("确定删除？")) return;
   data.members = data.members.filter(x => x.name !== name);
   data.logs = data.logs.filter(x => x.name !== name);
-  saveData();
+  render();
 }
 
 function delLog(i) {
@@ -190,10 +184,9 @@ function delLog(i) {
   let m = data.members.find(x => x.name === log.name);
   if (m) m.count = Math.max(0, m.count - 1);
   data.logs.splice(i, 1);
-  saveData();
+  render();
 }
 
-// 渲染（5次劝退）
 function render() {
   let list = document.getElementById("list");
   list.innerHTML = "";
@@ -224,12 +217,10 @@ function render() {
       <td>${log.name}</td>
       <td>${log.reason}</td>
       <td>${log.user}</td>
-      <td>${btn}</td>
-    </tr>`;
+      <td>${btn}</td></tr>`;
   });
 }
 
-// 导出
 function exportData() {
   let wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.members), "社员");
