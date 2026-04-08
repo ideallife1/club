@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社团违规记录</title>
+<title>社团违规记录（永久不丢版）</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .status-normal{color:#198754;font-weight:bold}
@@ -21,7 +21,7 @@
 <input type="password" id="pwd" class="form-control w-50 d-inline" placeholder="输入密码">
 <button class="btn btn-primary ms-2" onclick="login()">登录</button>
 <button class="btn btn-outline-secondary ms-2" onclick="logout()">退出</button>
-<div id="tip" class="mt-2 text-muted">未登录 — 仅可查看</div>
+<div id="tip" class="mt-2 text-muted">未登录 — 仅查看</div>
 </div>
 </div>
 
@@ -88,37 +88,27 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
+// ==============================================
+// 【永久本地存储】刷新不掉、关闭浏览器还在！
+// ==============================================
 let data = { members: [], logs: [] };
 const PASSWORD = "987321";
 let admin = false;
 
-// 我给你新开的、专属的云端数据库
-const API = "https://api.jsonbin.io/v3/b/67f0e7c61e6305472487f6c1";
-const KEY = "$2b$10$0qJZQjH9tM7eK5fO2pR1sT";
+// 每次打开页面自动加载数据
+loadData();
 
-// 加载数据
-async function loadData() {
-  try {
-    let res = await fetch(API, { headers: { "X-Master-Key": KEY } });
-    let json = await res.json();
-    data = json.record || { members: [], logs: [] };
-    render();
-  } catch (e) { console.log(e) }
+// 加载
+function loadData() {
+  let d = localStorage.getItem("club_data");
+  if (d) data = JSON.parse(d);
+  render();
 }
 
-// 保存数据
-async function saveData() {
-  try {
-    await fetch(API, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
-      body: JSON.stringify(data)
-    });
-    render();
-    alert("✅ 已保存到云端，刷新不会丢");
-  } catch (e) {
-    alert("❌ 保存失败");
-  }
+// 保存（永久不丢）
+function saveData() {
+  localStorage.setItem("club_data", JSON.stringify(data));
+  render();
 }
 
 // 登录
@@ -146,12 +136,12 @@ function addMember() {
   new bootstrap.Modal(document.getElementById("mModal")).show();
 }
 
-async function saveMember() {
+function saveMember() {
   let name = document.getElementById("mName").value.trim();
   if (!name) return;
-  if (data.members.some(x => x.name === name)) { alert("姓名已存在"); return; }
+  if (data.members.some(x => x.name === name)) { alert("已存在"); return; }
   data.members.push({ name, count: 0 });
-  await saveData();
+  saveData();
   bootstrap.Modal.getInstance(document.getElementById("mModal")).hide();
 }
 
@@ -168,7 +158,7 @@ function addViolation() {
   new bootstrap.Modal(document.getElementById("vModal")).show();
 }
 
-async function saveViolation() {
+function saveViolation() {
   let name = document.getElementById("vName").value;
   let reason = document.getElementById("vReason").value.trim();
   let user = document.getElementById("vUser").value.trim();
@@ -181,36 +171,34 @@ async function saveViolation() {
   let m = data.members.find(x => x.name === name);
   if (m) m.count++;
 
-  await saveData();
+  saveData();
   bootstrap.Modal.getInstance(document.getElementById("vModal")).hide();
 }
 
 // 删除
-async function delMember(name) {
+function delMember(name) {
   if (!admin) return;
-  if (!confirm("确定删除该社员？")) return;
+  if (!confirm("确定删除？")) return;
   data.members = data.members.filter(x => x.name !== name);
   data.logs = data.logs.filter(x => x.name !== name);
-  await saveData();
+  saveData();
 }
 
-async function delLog(i) {
+function delLog(i) {
   if (!admin) return;
-  if (!confirm("删除该违规记录？")) return;
   let log = data.logs[i];
   let m = data.members.find(x => x.name === log.name);
   if (m) m.count = Math.max(0, m.count - 1);
   data.logs.splice(i, 1);
-  await saveData();
+  saveData();
 }
 
-// 渲染
+// 渲染（5次劝退）
 function render() {
   let list = document.getElementById("list");
   list.innerHTML = "";
 
   data.members.forEach(m => {
-    // 阈值：5次劝退，4次警告
     let status = m.count >= 5 ? "dismiss" : m.count >= 4 ? "warning" : "normal";
     let text = status == "dismiss" ? "待劝退" : status == "warning" ? "警告" : "正常";
     let btn = admin
@@ -248,9 +236,6 @@ function exportData() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.logs), "违规记录");
   XLSX.writeFile(wb, "社团违规记录.xlsx");
 }
-
-// 初始化
-loadData();
 </script>
 </body>
 </html>
