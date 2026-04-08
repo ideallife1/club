@@ -21,13 +21,13 @@
 <input type="password" id="pwd" class="form-control w-50 d-inline" placeholder="输入密码">
 <button class="btn btn-primary ms-2" onclick="login()">登录</button>
 <button class="btn btn-outline-secondary ms-2" onclick="logout()">退出</button>
-<div id="tip" class="mt-2 text-muted">未登录 — 仅查看</div>
+<div id="tip" class="mt-2 text-muted">未登录 — 仅可查看</div>
 </div>
 </div>
 
 <div class="card mb-3">
 <div class="card-body">
-<button class="btn btn-sm btn-primary" id="addMember" disabled onclick="addMember()">添加社员</button>
+<button class="btn btn-sm btn-primary" id="addMember" disabled onclick="addMember()">添加成员</button>
 <button class="btn btn-sm btn-danger ms-2" id="addViolation" disabled onclick="addViolation()">新增违规</button>
 <button class="btn btn-sm btn-success ms-2" id="exportBtn" disabled onclick="exportData()">导出Excel</button>
 </div>
@@ -70,7 +70,7 @@
 
 <!-- 弹窗 -->
 <div class="modal fade" id="mModal"><div class="modal-dialog"><div class="modal-content">
-<div class="modal-header"><h5>添加社员</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-header"><h5>添加成员</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
 <div class="modal-body"><input class="form-control" id="mName" placeholder="姓名"></div>
 <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveMember()">确定</button></div>
 </div></div></div>
